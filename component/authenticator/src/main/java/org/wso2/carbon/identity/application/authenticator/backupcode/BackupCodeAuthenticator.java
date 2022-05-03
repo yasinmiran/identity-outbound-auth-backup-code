@@ -210,7 +210,7 @@ public class BackupCodeAuthenticator extends AbstractApplicationAuthenticator im
              */
             String multiOptionURI = BackupCodeUtil.getMultiOptionURIQueryParam(request);
 
-            if (isBackupCodesExistForUser && request.getParameter(ENABLE_BACKUP_CODE) == null) {
+            if (isBackupCodesEnabledByUser && isBackupCodesExistForUser && request.getParameter(ENABLE_BACKUP_CODE) == null) {
                 // If backup code is enabled for the user.
                 String backupCodeLoginPageUrl =
                         buildBackupCodeLoginPageURL(context, username, retryParam, multiOptionURI);
@@ -707,7 +707,7 @@ public class BackupCodeAuthenticator extends AbstractApplicationAuthenticator im
 
         UserStoreManager userStoreManager;
         try {
-            UserRealm userRealm = BackupCodeUtil.getUserRealm(user.getUserName());
+            UserRealm userRealm = BackupCodeUtil.getUserRealm(user.toFullQualifiedUsername());
             userStoreManager = userRealm.getUserStoreManager();
             // Add required meta properties to the event.
             Map<String, Object> metaProperties = new HashMap<>();
@@ -734,7 +734,7 @@ public class BackupCodeAuthenticator extends AbstractApplicationAuthenticator im
 
         UserStoreManager userStoreManager;
         try {
-            UserRealm userRealm = BackupCodeUtil.getUserRealm(user.getUserName());
+            UserRealm userRealm = BackupCodeUtil.getUserRealm(user.toFullQualifiedUsername());
             userStoreManager = userRealm.getUserStoreManager();
             // Add required meta properties to the event.
             Map<String, Object> metaProperties = new HashMap<>();
