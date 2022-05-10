@@ -130,6 +130,17 @@ public class BackupCodeAuthenticator extends AbstractApplicationAuthenticator im
         return (token != null || action != null || enableBackupCode != null);
     }
 
+    /**
+     * Check whether status of retrying authentication.
+     *
+     * @return true, if retry authentication is enabled
+     */
+    @Override
+    protected boolean retryAuthenticationEnabled() {
+
+        return true;
+    }
+
     @Override
     public String getContextIdentifier(HttpServletRequest httpServletRequest) {
 
