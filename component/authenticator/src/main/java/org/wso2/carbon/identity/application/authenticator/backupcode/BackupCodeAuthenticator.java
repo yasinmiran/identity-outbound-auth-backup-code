@@ -30,7 +30,6 @@ import org.wso2.carbon.extension.identity.helper.util.IdentityHelperUtil;
 import org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
@@ -68,13 +67,11 @@ import static org.wso2.carbon.identity.application.authenticator.backupcode.cons
 import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.AUTHENTICATION;
 import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.BACKUP_CODE_AUTHENTICATOR_FRIENDLY_NAME;
 import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.BACKUP_CODE_AUTHENTICATOR_NAME;
-import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.BASIC;
 import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.CODE_MISMATCH;
 import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.Claims.BACKUP_CODES_CLAIM;
 import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.Claims.BACKUP_CODES_ENABLED_CLAIM;
 import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.BACKUP_CODE;
 import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.Claims.BACKUP_CODE_FAILED_ATTEMPTS_CLAIM;
-import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.ENABLE_BACKUP_CODE;
 import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.ErrorMessages.ERROR_CODE_ERROR_ACCESS_USER_REALM;
 import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.ErrorMessages.ERROR_CODE_ERROR_DECRYPT_BACKUP_CODE;
 import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.ErrorMessages.ERROR_CODE_ERROR_ENCRYPT_BACKUP_CODE;
@@ -85,9 +82,7 @@ import static org.wso2.carbon.identity.application.authenticator.backupcode.cons
 import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.ErrorMessages.ERROR_CODE_INVALID_FEDERATED_USER_AUTHENTICATION;
 import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.ErrorMessages.ERROR_CODE_NO_AUTHENTICATED_USER;
 import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.ErrorMessages.ERROR_CODE_NO_FEDERATED_USER;
-import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.FEDARETOR;
 import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.IS_INITIAL_FEDERATED_USER_ATTEMPT;
-import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.SEND_TOKEN;
 import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.SUPER_TENANT_DOMAIN;
 import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.POST_NON_BASIC_AUTHENTICATION;
 import static org.wso2.carbon.identity.event.IdentityEventConstants.EventProperty.AUTHENTICATOR_NAME;
@@ -125,9 +120,7 @@ public class BackupCodeAuthenticator extends AbstractApplicationAuthenticator im
     public boolean canHandle(HttpServletRequest httpServletRequest) {
 
         String token = httpServletRequest.getParameter(BACKUP_CODE);
-        String action = httpServletRequest.getParameter(SEND_TOKEN);
-        String enableBackupCode = httpServletRequest.getParameter(ENABLE_BACKUP_CODE);
-        return (token != null || action != null || enableBackupCode != null);
+        return (token != null);
     }
 
     /**
@@ -200,13 +193,10 @@ public class BackupCodeAuthenticator extends AbstractApplicationAuthenticator im
                 retryParam = "&authFailure=true&authFailureMsg=login.fail.message";
             }
             boolean isBackupCodesExistForUser = false;
-            boolean isBackupCodesEnabledByUser = false;
 
             // Not required to check the backup code enable state for the initial login of the federated users.
             if (!isInitialFederationAttempt) {
                 isBackupCodesExistForUser = isBackupCodesExistForUser(
-                        UserCoreUtil.addDomainToName(username, authenticatingUser.getUserStoreDomain()));
-                isBackupCodesEnabledByUser = isBackupCodesEnabledByUser(
                         UserCoreUtil.addDomainToName(username, authenticatingUser.getUserStoreDomain()));
             }
             if (isBackupCodesExistForUser) {
@@ -221,29 +211,15 @@ public class BackupCodeAuthenticator extends AbstractApplicationAuthenticator im
              */
             String multiOptionURI = BackupCodeUtil.getMultiOptionURIQueryParam(request);
 
-            if (isBackupCodesEnabledByUser && isBackupCodesExistForUser && request.getParameter(ENABLE_BACKUP_CODE) == null) {
+            if (isBackupCodesExistForUser) {
                 // If backup code is enabled for the user.
                 String backupCodeLoginPageUrl =
                         buildBackupCodeLoginPageURL(context, username, retryParam, multiOptionURI);
                 response.sendRedirect(backupCodeLoginPageUrl);
             } else {
-                if (isBackupCodesEnabledByUser && !isBackupCodesExistForUser) {
-                    String backupCodeErrorPageUrl =
-                            buildBackupCodeErrorPageURL(context, username, retryParam, multiOptionURI);
-                    response.sendRedirect(backupCodeErrorPageUrl);
-
-                } else {
-                    // If backup code is not enabled for the user.
-                    context.setSubject(authenticatingUser);
-                    StepConfig stepConfig = context.getSequenceConfig().getStepMap().get(context.getCurrentStep() - 1);
-                    if (stepConfig.getAuthenticatedAutenticator()
-                            .getApplicationAuthenticator() instanceof LocalApplicationAuthenticator) {
-                        context.setProperty(AUTHENTICATION, BASIC);
-                    } else {
-                        context.setProperty(AUTHENTICATION, FEDARETOR);
-                    }
-                }
-
+                String backupCodeErrorPageUrl =
+                        buildBackupCodeErrorPageURL(context, username, retryParam, multiOptionURI);
+                response.sendRedirect(backupCodeErrorPageUrl);
             }
         } catch (IOException e) {
             throw new AuthenticationFailedException(
@@ -471,37 +447,6 @@ public class BackupCodeAuthenticator extends AbstractApplicationAuthenticator im
         } catch (UserStoreException e) {
             throw new BackupCodeException(ERROR_CODE_ERROR_ACCESS_USER_REALM.getCode(),
                     String.format(ERROR_CODE_ERROR_ACCESS_USER_REALM.getMessage(), tenantAwareUsername, e));
-        }
-    }
-
-    /**
-     * Check whether BackupCode is enabled for local user or not.
-     *
-     * @param username Username of the user.
-     * @return true, If BackupCode enable for local user.
-     * @throws BackupCodeException           When user realm is null or could not find user.
-     * @throws AuthenticationFailedException If an error occurred while getting user claims.
-     */
-    private boolean isBackupCodesEnabledByUser(String username)
-            throws BackupCodeException, AuthenticationFailedException {
-
-        String tenantAwareUsername = null;
-        try {
-            UserRealm userRealm = BackupCodeUtil.getUserRealm(username);
-            tenantAwareUsername = MultitenantUtils.getTenantAwareUsername(username);
-            if (userRealm != null) {
-                Map<String, String> UserClaimValues = userRealm.getUserStoreManager()
-                        .getUserClaimValues(tenantAwareUsername, new String[]{BACKUP_CODES_ENABLED_CLAIM}, null);
-                String isBackupCodesEnabled = UserClaimValues.get(BACKUP_CODES_ENABLED_CLAIM);
-                return Boolean.parseBoolean(isBackupCodesEnabled);
-            } else {
-                throw new BackupCodeException(ERROR_CODE_ERROR_FIND_USER_REALM.getCode(),
-                        String.format(ERROR_CODE_ERROR_FIND_USER_REALM.getMessage(),
-                                CarbonContext.getThreadLocalCarbonContext().getTenantDomain()));
-            }
-        } catch (UserStoreException e) {
-            throw new BackupCodeException(ERROR_CODE_ERROR_ACCESS_USER_REALM.getCode(),
-                    String.format(ERROR_CODE_ERROR_ACCESS_USER_REALM.getMessage(), tenantAwareUsername), e);
         }
     }
 
