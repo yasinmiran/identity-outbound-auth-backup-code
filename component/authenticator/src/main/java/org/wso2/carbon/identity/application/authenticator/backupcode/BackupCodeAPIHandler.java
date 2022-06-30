@@ -17,6 +17,7 @@
  */
 package org.wso2.carbon.identity.application.authenticator.backupcode;
 
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.application.authenticator.backupcode.exception.BackupCodeException;
 import org.wso2.carbon.identity.application.authenticator.backupcode.util.BackupCodeUtil;
 import org.wso2.carbon.user.api.UserRealm;
@@ -32,8 +33,7 @@ import java.util.Map;
 
 import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.Claims.BACKUP_CODES_CLAIM;
 import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.Claims.BACKUP_CODES_ENABLED_CLAIM;
-import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.ErrorMessages.ERROR_CODE_ERROR_ACCESS_USER_REALM;
-import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.ErrorMessages.ERROR_CODE_ERROR_FIND_USER_REALM;
+import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.ErrorMessages.*;
 
 /**
  * Handle backup code API related functionalities.
@@ -41,24 +41,24 @@ import static org.wso2.carbon.identity.application.authenticator.backupcode.cons
 public class BackupCodeAPIHandler {
 
     /**
-     * Retrieve backup codes for the given username.
+     * Returns the number of backup codes remaining for the given user.
      *
      * @param username Username of the user.
-     * @return List of backup code of the user.
+     * @return the number of backup codes remaining for the given user.
      * @throws BackupCodeException If an error occurred while getting backup codes.
      */
-    public static Integer getBackupCodes(String username) throws BackupCodeException {
+    public static int getRemainingBackupCodesCount(String username) throws BackupCodeException {
 
-        String tenantAwareUsername;
         List<String> remainingBackupCodesList = new ArrayList<>();
         try {
+            String tenantAwareUsername;
             UserRealm userRealm = BackupCodeUtil.getUserRealm(username);
             if (userRealm != null) {
                 tenantAwareUsername = MultitenantUtils.getTenantAwareUsername(username);
                 Map<String, String> userClaimValues = userRealm.getUserStoreManager()
                         .getUserClaimValues(tenantAwareUsername, new String[]{BACKUP_CODES_CLAIM}, null);
                 String backupCodes = userClaimValues.get(BACKUP_CODES_CLAIM);
-                if (backupCodes != null) {
+                if (backupCodes != null || StringUtils.isNotBlank(backupCodes)) {
                     remainingBackupCodesList = new ArrayList<>(Arrays.asList(backupCodes.split(",")));
                 }
             }
@@ -73,7 +73,7 @@ public class BackupCodeAPIHandler {
      * Generate backup codes for the user.
      *
      * @param username Username of the user.
-     * @return claims.
+     * @return list of generated backup codes for the user.
      * @throws BackupCodeException If an error occurred while generating the backup codes.
      */
     public static List<String> generateBackupCodes(String username) throws BackupCodeException {
@@ -122,15 +122,12 @@ public class BackupCodeAPIHandler {
         } catch (UserStoreException e) {
             throw new BackupCodeException(ERROR_CODE_ERROR_ACCESS_USER_REALM.getCode(),
                     String.format(ERROR_CODE_ERROR_ACCESS_USER_REALM.getMessage(), username, e));
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
         }
-
         return generatedBackupCodes;
     }
 
     /**
-     * Remove the stored secret key and encoding method from user claim.
+     * Remove the stored remaining backup codes for the user.
      *
      * @param username username of the user.
      * @return true if successfully resetting the claims, false otherwise.

@@ -277,7 +277,7 @@ public class BackupCodeAuthenticator extends AbstractApplicationAuthenticator im
             } else {
                 context.setSubject(AuthenticatedUser.createLocalAuthenticatedUserFromSubjectIdentifier(username));
             }
-        } catch (BackupCodeException | NoSuchAlgorithmException e) {
+        } catch (BackupCodeException e) {
             throw new AuthenticationFailedException("Backup code Authentication process failed for user " + username,
                     e);
         }
@@ -517,7 +517,7 @@ public class BackupCodeAuthenticator extends AbstractApplicationAuthenticator im
      * @throws BackupCodeException If an error occurred while validating token.
      */
     private boolean isValidTokenFederatedUser(String code, AuthenticationContext context, String userName)
-            throws BackupCodeException, NoSuchAlgorithmException {
+            throws BackupCodeException {
 
         String backupCodes = null;
         if (context.getProperty(BACKUP_CODES_CLAIM) != null) {
@@ -558,14 +558,14 @@ public class BackupCodeAuthenticator extends AbstractApplicationAuthenticator im
                         String.format(ERROR_CODE_ERROR_FIND_USER_REALM.getMessage(),
                                 CarbonContext.getThreadLocalCarbonContext().getTenantDomain()));
             }
-        } catch (UserStoreException | NoSuchAlgorithmException e) {
+        } catch (UserStoreException e) {
             throw new BackupCodeException(ERROR_CODE_ERROR_ACCESS_USER_REALM.getCode(),
                     String.format(ERROR_CODE_ERROR_ACCESS_USER_REALM.getMessage(), tenantAwareUsername, e));
         }
     }
 
     private boolean isValidBackupCode(String token, AuthenticationContext context, String userName,
-                                      String hashedBackupCodes) throws BackupCodeException, NoSuchAlgorithmException {
+                                      String hashedBackupCodes) throws BackupCodeException {
 
         if (StringUtils.isBlank(hashedBackupCodes)) {
             if (log.isDebugEnabled()) {
@@ -610,7 +610,7 @@ public class BackupCodeAuthenticator extends AbstractApplicationAuthenticator im
      * @throws BackupCodeException If an error occurred while removing the used backup code.
      */
     private void removeUsedBackupCode(String userToken, String username, List<String> backupCodes)
-            throws BackupCodeException, NoSuchAlgorithmException {
+            throws BackupCodeException {
 
         backupCodes.remove(BackupCodeUtil.generateHashString(userToken));
         String unusedBackupCodes = String.join(",", backupCodes);

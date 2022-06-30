@@ -62,9 +62,8 @@ public class BackupCodeAuthenticatorConstants {
                 "Error occurred while triggering event: %s for the user: %s"), ERROR_CODE_ERROR_FIND_USER_REALM("65008",
                 "Cannot find the user realm for the given tenant domain : %s"), ERROR_CODE_ERROR_ACCESS_USER_REALM(
                 "65009",
-                "Error occurred failed while trying to access userRealm of the user : %s"), ERROR_CODE_ERROR_DECRYPT_BACKUP_CODE(
-                "65010", "Error occurred while decrypting backup codes"), ERROR_CODE_ERROR_ENCRYPT_BACKUP_CODE("65011",
-                "Error occurred while encrypting backup codes"), ERROR_CODE_ERROR_GETTING_CONFIG("65012",
+                "Error occurred failed while trying to access userRealm of the user : %s"), ERROR_CODE_ERROR_HASH_BACKUP_CODE(
+                "65010", "Error occurred while hashing backup codes"), ERROR_CODE_ERROR_GETTING_CONFIG("65012",
                 "Error occurred while getting backup code configurations");
         private final String code;
         private final String message;

@@ -71,6 +71,7 @@ import static org.wso2.carbon.identity.application.authenticator.backupcode.cons
 import static org.apache.commons.lang.StringUtils.isNotBlank;
 import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.ERROR_PAGE;
 import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.ErrorMessages.ERROR_CODE_ERROR_GETTING_CONFIG;
+import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.ErrorMessages.ERROR_CODE_ERROR_HASH_BACKUP_CODE;
 import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.LOCAL_AUTHENTICATOR;
 import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.LOGIN_PAGE;
 import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.SUPER_TENANT_DOMAIN;
@@ -452,17 +453,23 @@ public class BackupCodeUtil {
      *
      * @param backupCode String value that needs to hash.
      * @return Hash value of the backupCode.
-     * @throws NoSuchAlgorithmException If the algorithms is invalid.
+     * @throws BackupCodeException If the algorithms is invalid.
      */
-    public static String generateHashString(String backupCode) throws NoSuchAlgorithmException {
+    public static String generateHashString(String backupCode) throws BackupCodeException {
 
-        MessageDigest messageDigest = MessageDigest.getInstance(TOKEN_HASH_METHOD);
-        byte[] in = messageDigest.digest(backupCode.getBytes(StandardCharsets.UTF_8));
-        final StringBuilder builder = new StringBuilder();
-        for (byte b : in) {
-            builder.append(String.format("%02x", b));
+        try {
+            MessageDigest messageDigest = MessageDigest.getInstance(TOKEN_HASH_METHOD);
+            byte[] in = messageDigest.digest(backupCode.getBytes(StandardCharsets.UTF_8));
+            final StringBuilder builder = new StringBuilder();
+            for (byte b : in) {
+                builder.append(String.format("%02x", b));
+            }
+            return builder.toString();
+        } catch (NoSuchAlgorithmException e) {
+            throw new BackupCodeException(ERROR_CODE_ERROR_HASH_BACKUP_CODE.getCode(),
+                    ERROR_CODE_ERROR_HASH_BACKUP_CODE.getMessage(), e);
         }
-        return builder.toString();
+
     }
 }
 
