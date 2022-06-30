@@ -50,6 +50,8 @@ import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
@@ -79,6 +81,7 @@ import static org.wso2.carbon.identity.application.authenticator.backupcode.cons
 public class BackupCodeUtil {
 
     private static final Log log = LogFactory.getLog(BackupCodeUtil.class);
+    private static final String TOKEN_HASH_METHOD = "SHA-256";
 
     /**
      * Returns AuthenticatedUser object from context.
@@ -365,7 +368,7 @@ public class BackupCodeUtil {
      * @return Generated backup codes.
      * @throws BackupCodeException If an error occurred while generating backup codes.
      */
-    public static String generateBackupCodes(String tenantDomain) throws BackupCodeException {
+    public static List<String> generateBackupCodes(String tenantDomain) throws BackupCodeException {
 
         int backupCodeLength = getBackupCodeLength(tenantDomain);
         int backupCodesSize = getBackupCodesSize(tenantDomain);
@@ -373,7 +376,7 @@ public class BackupCodeUtil {
         for (int i = 0; i < backupCodesSize; i++) {
             backupCodes.add(generateBackupCode(backupCodeLength));
         }
-        return String.join(",", backupCodes);
+        return backupCodes;
     }
 
     private static String generateBackupCode(int length) {
@@ -442,6 +445,24 @@ public class BackupCodeUtil {
             throw new BackupCodeException(ERROR_CODE_ERROR_GETTING_CONFIG.getCode(),
                     ERROR_CODE_ERROR_GETTING_CONFIG.getMessage(), e);
         }
+    }
+
+    /**
+     * Generate the hash value of the given string.
+     *
+     * @param backupCode String value that needs to hash.
+     * @return Hash value of the backupCode.
+     * @throws NoSuchAlgorithmException If the algorithms is invalid.
+     */
+    public static String generateHashString(String backupCode) throws NoSuchAlgorithmException {
+
+        MessageDigest messageDigest = MessageDigest.getInstance(TOKEN_HASH_METHOD);
+        byte[] in = messageDigest.digest(backupCode.getBytes(StandardCharsets.UTF_8));
+        final StringBuilder builder = new StringBuilder();
+        for (byte b : in) {
+            builder.append(String.format("%02x", b));
+        }
+        return builder.toString();
     }
 }
 

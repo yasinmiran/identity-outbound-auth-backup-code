@@ -586,7 +586,7 @@ public class BackupCodeAuthenticator extends AbstractApplicationAuthenticator im
             }
             return false;
         }
-        if (!backupCodeList.contains(BackupCodeAPIHandler.generateHashString(token))) {
+        if (!backupCodeList.contains(BackupCodeUtil.generateHashString(token))) {
             if (log.isDebugEnabled()) {
                 log.debug(String.format("Given code: %s does not match with any saved backup codes codes for user: %s",
                         token, userName));
@@ -612,7 +612,7 @@ public class BackupCodeAuthenticator extends AbstractApplicationAuthenticator im
     private void removeUsedBackupCode(String userToken, String username, List<String> backupCodes)
             throws BackupCodeException, NoSuchAlgorithmException {
 
-        backupCodes.remove(BackupCodeAPIHandler.generateHashString(userToken));
+        backupCodes.remove(BackupCodeUtil.generateHashString(userToken));
         String unusedBackupCodes = String.join(",", backupCodes);
         String tenantAwareUsername = MultitenantUtils.getTenantAwareUsername(username);
         try {
