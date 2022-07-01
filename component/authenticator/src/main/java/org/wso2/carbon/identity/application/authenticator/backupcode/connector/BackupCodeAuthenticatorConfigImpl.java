@@ -28,12 +28,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.BACKUP_CODES_SIZE;
+import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.REQUIRED_NO_OF_BACKUP_CODES;
 import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.BACKUP_CODE_AUTHENTICATOR_FRIENDLY_NAME;
 import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.BACKUP_CODE_AUTHENTICATOR_NAME;
-import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.BACKUP_CODE_LENGTH;
-import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.DEFAULT_BACKUP_CODES_SIZE;
-import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.DEFAULT_BACKUP_CODE_LENGTH;
+import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.LENGTH_OF_BACKUP_CODE;
+import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.DEFAULT_NO_OF_BACKUP_CODES;
+import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.DEFAULT_LENGTH_OF_BACKUP_CODE;
 
 /**
  * This class contains the authenticator config implementation.
@@ -74,8 +74,8 @@ public class BackupCodeAuthenticatorConfigImpl implements IdentityConnectorConfi
     public Map<String, String> getPropertyNameMapping() {
 
         Map<String, String> nameMapping = new HashMap<>();
-        nameMapping.put(BACKUP_CODE_LENGTH, "Backup code length");
-        nameMapping.put(BACKUP_CODES_SIZE, "Backup code size");
+        nameMapping.put(LENGTH_OF_BACKUP_CODE, "Backup code length");
+        nameMapping.put(REQUIRED_NO_OF_BACKUP_CODES, "Backup code size");
         return nameMapping;
     }
 
@@ -83,8 +83,8 @@ public class BackupCodeAuthenticatorConfigImpl implements IdentityConnectorConfi
     public Map<String, String> getPropertyDescriptionMapping() {
 
         Map<String, String> descriptionMapping = new HashMap<>();
-        descriptionMapping.put(BACKUP_CODE_LENGTH, "Length of a backup code");
-        descriptionMapping.put(BACKUP_CODES_SIZE, "Maximum number of backup codes");
+        descriptionMapping.put(LENGTH_OF_BACKUP_CODE, "Length of a backup code");
+        descriptionMapping.put(REQUIRED_NO_OF_BACKUP_CODES, "Maximum number of backup codes");
         return descriptionMapping;
     }
 
@@ -92,19 +92,19 @@ public class BackupCodeAuthenticatorConfigImpl implements IdentityConnectorConfi
     public String[] getPropertyNames() {
 
         List<String> properties = new ArrayList<>();
-        properties.add(BACKUP_CODE_LENGTH);
-        properties.add(BACKUP_CODES_SIZE);
+        properties.add(LENGTH_OF_BACKUP_CODE);
+        properties.add(REQUIRED_NO_OF_BACKUP_CODES);
         return properties.toArray(new String[0]);
     }
 
     @Override
     public Properties getDefaultPropertyValues(String s) throws IdentityGovernanceException {
 
-        String backupCodeLength = String.valueOf(DEFAULT_BACKUP_CODE_LENGTH);
-        String backupCodesSize = String.valueOf(DEFAULT_BACKUP_CODES_SIZE);
+        String backupCodeLength = String.valueOf(DEFAULT_LENGTH_OF_BACKUP_CODE);
+        String backupCodesSize = String.valueOf(DEFAULT_NO_OF_BACKUP_CODES);
 
-        String backupCodeLengthProperty = IdentityUtil.getProperty(BACKUP_CODE_LENGTH);
-        String backupCodesSizeProperty = IdentityUtil.getProperty(BACKUP_CODES_SIZE);
+        String backupCodeLengthProperty = IdentityUtil.getProperty(LENGTH_OF_BACKUP_CODE);
+        String backupCodesSizeProperty = IdentityUtil.getProperty(REQUIRED_NO_OF_BACKUP_CODES);
 
         if (StringUtils.isNotBlank(backupCodeLengthProperty)) {
             backupCodeLength = backupCodeLengthProperty;
@@ -114,8 +114,8 @@ public class BackupCodeAuthenticatorConfigImpl implements IdentityConnectorConfi
         }
 
         Map<String, String> defaultProperties = new HashMap<>();
-        defaultProperties.put(BACKUP_CODE_LENGTH, backupCodeLength);
-        defaultProperties.put(BACKUP_CODES_SIZE, backupCodesSize);
+        defaultProperties.put(LENGTH_OF_BACKUP_CODE, backupCodeLength);
+        defaultProperties.put(REQUIRED_NO_OF_BACKUP_CODES, backupCodesSize);
 
         Properties properties = new Properties();
         properties.putAll(defaultProperties);

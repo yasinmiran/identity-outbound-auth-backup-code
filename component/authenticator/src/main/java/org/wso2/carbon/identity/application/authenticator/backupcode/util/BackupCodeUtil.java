@@ -25,8 +25,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.owasp.encoder.Encode;
-import org.wso2.carbon.core.util.CryptoException;
-import org.wso2.carbon.core.util.CryptoUtil;
 import org.wso2.carbon.extension.identity.helper.IdentityHelperConstants;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder;
@@ -59,19 +57,19 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
-import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.BACKUP_CODES_SIZE;
+import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.REQUIRED_NO_OF_BACKUP_CODES;
 import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.BACKUP_CODE_AUTHENTICATION_ENDPOINT_URL;
 import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.BACKUP_CODE_AUTHENTICATION_ERROR_PAGE_URL;
 import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.BACKUP_CODE_AUTHENTICATOR_NAME;
-import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.BACKUP_CODE_LENGTH;
+import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.LENGTH_OF_BACKUP_CODE;
 import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.BACKUP_CODE_LOGIN_PAGE;
 import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.BACKUP_CODE_NUMERIC_CHAR_SET;
-import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.DEFAULT_BACKUP_CODES_SIZE;
-import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.DEFAULT_BACKUP_CODE_LENGTH;
+import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.DEFAULT_NO_OF_BACKUP_CODES;
+import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.DEFAULT_LENGTH_OF_BACKUP_CODE;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
 import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.ERROR_PAGE;
-import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.ErrorMessages.ERROR_CODE_ERROR_GETTING_CONFIG;
-import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.ErrorMessages.ERROR_CODE_ERROR_HASH_BACKUP_CODE;
+import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.ErrorMessages.ERROR_GETTING_CONFIG;
+import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.ErrorMessages.ERROR_HASH_BACKUP_CODE;
 import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.LOCAL_AUTHENTICATOR;
 import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.LOGIN_PAGE;
 import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.SUPER_TENANT_DOMAIN;
@@ -164,9 +162,8 @@ public class BackupCodeUtil {
         String loginPageFromConfig = getLoginPageFromXMLFile(context);
         if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
             return getTenantQualifiedURL(loginPageFromConfig, BACKUP_CODE_LOGIN_PAGE);
-        } else {
-            return loginPageFromConfig;
         }
+        return loginPageFromConfig;
     }
 
     /**
@@ -216,15 +213,13 @@ public class BackupCodeUtil {
                     // Build tenant qualified URL using the context picked from config.
                     context = urlFromConfig;
                     return buildTenantQualifiedURL(context);
-                } else {
-                    // The URL picked from configs was an absolute one, we don't have a way to tenant qualify it.
-                    return urlFromConfig;
                 }
-            } else {
-                // No URL defined in configs. Build tenant qualified URL using the default context.
-                context = defaultContext;
-                return buildTenantQualifiedURL(context);
+                // The URL picked from configs was an absolute one, we don't have a way to tenant qualify it.
+                return urlFromConfig;
             }
+            // No URL defined in configs. Build tenant qualified URL using the default context.
+            context = defaultContext;
+            return buildTenantQualifiedURL(context);
         } catch (URLBuilderException | URISyntaxException e) {
             throw new AuthenticationFailedException("Error while building tenant qualified URL for context: " + context,
                     e);
@@ -263,9 +258,8 @@ public class BackupCodeUtil {
         String errorUrlFromConfig = getErrorPageFromXMLFile(context);
         if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
             return getTenantQualifiedURL(errorUrlFromConfig, ERROR_PAGE);
-        } else {
-            return errorUrlFromConfig;
         }
+        return errorUrlFromConfig;
     }
 
     /**
@@ -340,30 +334,6 @@ public class BackupCodeUtil {
     }
 
     /**
-     * Encrypt the given plain text.
-     *
-     * @param plainText The plaintext value to be encrypted and base64 encoded.
-     * @return Base64 encoded string.
-     * @throws CryptoException On error during encryption.
-     */
-    public static String encrypt(String plainText) throws CryptoException {
-
-        return CryptoUtil.getDefaultCryptoUtil().encryptAndBase64Encode(plainText.getBytes(StandardCharsets.UTF_8));
-    }
-
-    /**
-     * Decrypt the given cipher text.
-     *
-     * @param cipherText The string which needs to be decrypted.
-     * @return Base64 decoded string.
-     * @throws CryptoException On an error during decryption.
-     */
-    public static String decrypt(String cipherText) throws CryptoException {
-
-        return new String(CryptoUtil.getDefaultCryptoUtil().base64DecodeAndDecrypt(cipherText), StandardCharsets.UTF_8);
-    }
-
-    /**
      * Generate the backup codes according to the configuration parameters.
      *
      * @return Generated backup codes.
@@ -371,11 +341,11 @@ public class BackupCodeUtil {
      */
     public static List<String> generateBackupCodes(String tenantDomain) throws BackupCodeException {
 
-        int backupCodeLength = getBackupCodeLength(tenantDomain);
-        int backupCodesSize = getBackupCodesSize(tenantDomain);
+        int lengthOfBackupCode = getLengthOfBackupCode(tenantDomain);
+        int noOfBackupCodes = getRequiredNoOfBackupCodes(tenantDomain);
         List<String> backupCodes = new ArrayList<>();
-        for (int i = 0; i < backupCodesSize; i++) {
-            backupCodes.add(generateBackupCode(backupCodeLength));
+        for (int i = 0; i < noOfBackupCodes; i++) {
+            backupCodes.add(generateBackupCode(lengthOfBackupCode));
         }
         return backupCodes;
     }
@@ -398,15 +368,15 @@ public class BackupCodeUtil {
      * @return Backup code length.
      * @throws BackupCodeException If an error occurred while getting the backup code length.
      */
-    private static int getBackupCodeLength(String tenantDomain) throws BackupCodeException {
+    private static int getLengthOfBackupCode(String tenantDomain) throws BackupCodeException {
 
-        int backupCodeLength = DEFAULT_BACKUP_CODE_LENGTH;
-        String configuredBackupCodeLength =
-                BackupCodeUtil.getBackupCodeAuthenticatorConfig(BACKUP_CODE_LENGTH, tenantDomain);
-        if (NumberUtils.isNumber(configuredBackupCodeLength)) {
-            backupCodeLength = Integer.parseInt(configuredBackupCodeLength);
+        int lengthOfBackupCode = DEFAULT_LENGTH_OF_BACKUP_CODE;
+        String configuredLengthOfBackupCode =
+                BackupCodeUtil.getBackupCodeAuthenticatorConfig(LENGTH_OF_BACKUP_CODE, tenantDomain);
+        if (NumberUtils.isNumber(configuredLengthOfBackupCode)) {
+            lengthOfBackupCode = Integer.parseInt(configuredLengthOfBackupCode);
         }
-        return backupCodeLength;
+        return lengthOfBackupCode;
     }
 
     /**
@@ -416,15 +386,15 @@ public class BackupCodeUtil {
      * @return Backup codes size.
      * @throws BackupCodeException If an error occurred while getting the backup codes size.
      */
-    private static int getBackupCodesSize(String tenantDomain) throws BackupCodeException {
+    private static int getRequiredNoOfBackupCodes(String tenantDomain) throws BackupCodeException {
 
-        int backupCodeSize = DEFAULT_BACKUP_CODES_SIZE;
-        String configuredBackupCodeSize =
-                BackupCodeUtil.getBackupCodeAuthenticatorConfig(BACKUP_CODES_SIZE, tenantDomain);
-        if (NumberUtils.isNumber(configuredBackupCodeSize)) {
-            backupCodeSize = Integer.parseInt(configuredBackupCodeSize);
+        int noOfRequiredBackupCodes = DEFAULT_NO_OF_BACKUP_CODES;
+        String configuredRequiredNoOfBackupCodes =
+                BackupCodeUtil.getBackupCodeAuthenticatorConfig(REQUIRED_NO_OF_BACKUP_CODES, tenantDomain);
+        if (NumberUtils.isNumber(configuredRequiredNoOfBackupCodes)) {
+            noOfRequiredBackupCodes = Integer.parseInt(configuredRequiredNoOfBackupCodes);
         }
-        return backupCodeSize;
+        return noOfRequiredBackupCodes;
     }
 
     /**
@@ -443,19 +413,19 @@ public class BackupCodeUtil {
             connectorConfigs = governanceService.getConfiguration(new String[]{key}, tenantDomain);
             return connectorConfigs[0].getValue();
         } catch (IdentityGovernanceException e) {
-            throw new BackupCodeException(ERROR_CODE_ERROR_GETTING_CONFIG.getCode(),
-                    ERROR_CODE_ERROR_GETTING_CONFIG.getMessage(), e);
+            throw new BackupCodeException(ERROR_GETTING_CONFIG.getCode(),
+                    ERROR_GETTING_CONFIG.getMessage(), e);
         }
     }
 
     /**
-     * Generate the hash value of the given string.
+     * Generate the hash value of the given backupCode.
      *
      * @param backupCode String value that needs to hash.
      * @return Hash value of the backupCode.
      * @throws BackupCodeException If the algorithms is invalid.
      */
-    public static String generateHashString(String backupCode) throws BackupCodeException {
+    public static String generateHashBackupCode(String backupCode) throws BackupCodeException {
 
         try {
             MessageDigest messageDigest = MessageDigest.getInstance(TOKEN_HASH_METHOD);
@@ -466,10 +436,8 @@ public class BackupCodeUtil {
             }
             return builder.toString();
         } catch (NoSuchAlgorithmException e) {
-            throw new BackupCodeException(ERROR_CODE_ERROR_HASH_BACKUP_CODE.getCode(),
-                    ERROR_CODE_ERROR_HASH_BACKUP_CODE.getMessage(), e);
+            throw new BackupCodeException(ERROR_HASH_BACKUP_CODE.getCode(),
+                    ERROR_HASH_BACKUP_CODE.getMessage(), e);
         }
-
     }
 }
-
