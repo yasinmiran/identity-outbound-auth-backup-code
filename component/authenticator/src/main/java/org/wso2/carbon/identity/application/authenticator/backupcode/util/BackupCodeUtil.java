@@ -42,6 +42,7 @@ import org.wso2.carbon.identity.governance.IdentityGovernanceService;
 import org.wso2.carbon.identity.handler.event.account.lock.exception.AccountLockServiceException;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
@@ -57,6 +58,8 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
+import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.ErrorMessages.*;
+import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.ErrorMessages.ERROR_ACCESS_USER_REALM;
 import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.REQUIRED_NO_OF_BACKUP_CODES;
 import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.BACKUP_CODE_AUTHENTICATION_ENDPOINT_URL;
 import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.BACKUP_CODE_AUTHENTICATION_ERROR_PAGE_URL;
@@ -68,8 +71,6 @@ import static org.wso2.carbon.identity.application.authenticator.backupcode.cons
 import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.DEFAULT_LENGTH_OF_BACKUP_CODE;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
 import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.ERROR_PAGE;
-import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.ErrorMessages.ERROR_GETTING_CONFIG;
-import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.ErrorMessages.ERROR_HASH_BACKUP_CODE;
 import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.LOCAL_AUTHENTICATOR;
 import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.LOGIN_PAGE;
 import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.SUPER_TENANT_DOMAIN;
@@ -119,19 +120,38 @@ public class BackupCodeUtil {
      *
      * @param username The Username.
      * @return The userRealm.
-     * @throws UserStoreException If an error occurred while getting the user realm.
+     * @throws BackupCodeException If an error occurred while getting the user realm.
      */
-    public static UserRealm getUserRealm(String username) throws UserStoreException {
+    public static UserRealm getUserRealm(String username) throws BackupCodeException {
 
-        UserRealm userRealm = null;
-
-        if (username != null) {
+        UserRealm userRealm;
+        if (username == null) {
+            return null;
+        }
+        try {
             String tenantDomain = MultitenantUtils.getTenantDomain(username);
             int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
             RealmService realmService = getRealmService();
             userRealm = realmService.getTenantUserRealm(tenantId);
+        } catch (UserStoreException e) {
+            throw new BackupCodeException(ERROR_ACCESS_USER_REALM.getCode(),
+                    String.format(ERROR_ACCESS_USER_REALM.getMessage(), username, e));
+        }
+        if (userRealm == null) {
+            throw new BackupCodeException(ERROR_GETTING_THE_USER_REALM.getCode(),
+                    String.format(ERROR_GETTING_THE_USER_REALM.getMessage()));
         }
         return userRealm;
+    }
+
+    public static UserStoreManager getUserStoreManagerOfUser(String fullyQualifiedUsername) throws BackupCodeException {
+
+        UserRealm userRealm = getUserRealm(fullyQualifiedUsername);
+        try {
+            return userRealm.getUserStoreManager();
+        } catch (UserStoreException e) {
+            throw new BackupCodeException(ERROR_GETTING_THE_USER_STORE_MANAGER.getCode(),
+                    String.format(ERROR_GETTING_THE_USER_STORE_MANAGER.getMessage(), fullyQualifiedUsername, e));        }
     }
 
     /**
