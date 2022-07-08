@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, WSO2 Inc. (http://www.wso2.com) All Rights Reserved.
+ * Copyright (c) 2022, WSO2 Inc. (http://www.wso2.com).
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -11,20 +11,18 @@
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied. See the License for the
+ * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
  */
 package org.wso2.carbon.identity.application.authenticator.backupcode;
 
-import org.wso2.carbon.core.util.CryptoException;
 import org.wso2.carbon.identity.application.authenticator.backupcode.exception.BackupCodeException;
 import org.wso2.carbon.identity.application.authenticator.backupcode.internal.BackupCodeDataHolder;
 import org.wso2.carbon.identity.application.authenticator.backupcode.util.BackupCodeUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.extension.identity.helper.FederatedAuthenticatorUtil;
 import org.wso2.carbon.extension.identity.helper.util.IdentityHelperUtil;
 import org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator;
@@ -43,7 +41,6 @@ import org.wso2.carbon.identity.event.IdentityEventConstants;
 import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.event.event.Event;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
-import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
@@ -54,7 +51,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -69,19 +65,16 @@ import static org.wso2.carbon.identity.application.authenticator.backupcode.cons
 import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.BACKUP_CODE_AUTHENTICATOR_NAME;
 import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.CODE_MISMATCH;
 import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.Claims.BACKUP_CODES_CLAIM;
-import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.Claims.BACKUP_CODES_ENABLED_CLAIM;
 import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.BACKUP_CODE;
 import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.Claims.BACKUP_CODE_FAILED_ATTEMPTS_CLAIM;
-import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.ErrorMessages.ERROR_CODE_ERROR_ACCESS_USER_REALM;
-import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.ErrorMessages.ERROR_CODE_ERROR_DECRYPT_BACKUP_CODE;
-import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.ErrorMessages.ERROR_CODE_ERROR_ENCRYPT_BACKUP_CODE;
-import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.ErrorMessages.ERROR_CODE_ERROR_FIND_USER_REALM;
-import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.ErrorMessages.ERROR_CODE_ERROR_TRIGGERING_EVENT;
-import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.ErrorMessages.ERROR_CODE_ERROR_UPDATING_BACKUP_CODES;
-import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.ErrorMessages.ERROR_CODE_INVALID_FEDERATED_AUTHENTICATOR;
-import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.ErrorMessages.ERROR_CODE_INVALID_FEDERATED_USER_AUTHENTICATION;
-import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.ErrorMessages.ERROR_CODE_NO_AUTHENTICATED_USER;
-import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.ErrorMessages.ERROR_CODE_NO_FEDERATED_USER;
+import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.ErrorMessages.ERROR_ACCESS_USER_REALM;
+import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.ErrorMessages.ERROR_TRIGGERING_EVENT;
+import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.ErrorMessages.ERROR_UPDATING_BACKUP_CODES;
+import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.ErrorMessages.INVALID_FEDERATED_AUTHENTICATOR;
+import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.ErrorMessages.INVALID_FEDERATED_USER_AUTHENTICATION;
+import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.ErrorMessages.ERROR_NO_AUTHENTICATED_USER;
+import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.ErrorMessages.ERROR_NO_FEDERATED_USER;
+import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.ErrorMessages.ERROR_GETTING_THE_USER_STORE_MANAGER;
 import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.IS_INITIAL_FEDERATED_USER_ATTEMPT;
 import static org.wso2.carbon.identity.application.authenticator.backupcode.constants.BackupCodeAuthenticatorConstants.SUPER_TENANT_DOMAIN;
 import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.POST_NON_BASIC_AUTHENTICATION;
@@ -96,6 +89,8 @@ import static org.wso2.carbon.identity.event.IdentityEventConstants.EventPropert
 public class BackupCodeAuthenticator extends AbstractApplicationAuthenticator implements LocalApplicationAuthenticator {
 
     private static final Log log = LogFactory.getLog(BackupCodeAuthenticator.class);
+
+    private static final String BACKUP_CODE_SEPARATOR = ",";
 
     @Override
     public AuthenticatorFlowStatus process(HttpServletRequest request, HttpServletResponse response,
@@ -164,8 +159,8 @@ public class BackupCodeAuthenticator extends AbstractApplicationAuthenticator im
         }
         AuthenticatedUser authenticatedUserFromContext = BackupCodeUtil.getAuthenticatedUser(context);
         if (authenticatedUserFromContext == null) {
-            throw new AuthenticationFailedException(ERROR_CODE_NO_AUTHENTICATED_USER.getCode(),
-                    ERROR_CODE_NO_AUTHENTICATED_USER.getMessage());
+            throw new AuthenticationFailedException(ERROR_NO_AUTHENTICATED_USER.getCode(),
+                    ERROR_NO_AUTHENTICATED_USER.getMessage());
         }
 
         /*
@@ -255,19 +250,23 @@ public class BackupCodeAuthenticator extends AbstractApplicationAuthenticator im
                     "Empty Backup code in the request. Authentication Failed for user: " + username);
         }
         try {
+            String backupCodes;
             if (isInitialFederationAttempt(context)) {
-                if (!isValidTokenFederatedUser(token, context, username)) {
+                backupCodes = backupCodesForFederatedUser(context);
+                if (!isValidBackupCode(token, context, username, backupCodes)) {
                     throw new AuthenticationFailedException(
                             "Invalid Token. Authentication failed for federated user: " + username);
                 }
             } else {
-
-                if (!isValidTokenLocalUser(token, username, context)) {
+                backupCodes = backupCodesForLocalUser(username);
+                if (!isValidBackupCode(token, context, username, backupCodes)) {
                     handleBackupCodeVerificationFail(authenticatingUser);
                     throw new AuthenticationFailedException(
                             "Invalid Token. Authentication failed, user :  " + username);
                 }
             }
+            // Removing used backup code from the list.
+            removeUsedBackupCode(token, username, backupCodes);
             if (StringUtils.isNotBlank(username)) {
                 AuthenticatedUser authenticatedUser = new AuthenticatedUser();
                 authenticatedUser.setAuthenticatedSubjectIdentifier(username);
@@ -314,12 +313,12 @@ public class BackupCodeAuthenticator extends AbstractApplicationAuthenticator im
             IdentityProvider idp = BackupCodeDataHolder.getIdpManager().getIdPByName(idpName, tenantDomain);
             if (idp == null) {
                 throw new AuthenticationFailedException(
-                        String.format(ERROR_CODE_INVALID_FEDERATED_AUTHENTICATOR.getMessage(), idpName, tenantDomain));
+                        String.format(INVALID_FEDERATED_AUTHENTICATOR.getMessage(), idpName, tenantDomain));
             }
             return idp;
         } catch (IdentityProviderManagementException e) {
             throw new AuthenticationFailedException(
-                    String.format(ERROR_CODE_INVALID_FEDERATED_AUTHENTICATOR.getMessage(), idpName, tenantDomain));
+                    String.format(INVALID_FEDERATED_AUTHENTICATOR.getMessage(), idpName, tenantDomain));
         }
     }
 
@@ -343,8 +342,8 @@ public class BackupCodeAuthenticator extends AbstractApplicationAuthenticator im
         // If the user is federated, we need to check whether the user is already provisioned to the organization.
         String federatedUsername = FederatedAuthenticatorUtil.getLoggedInFederatedUser(context);
         if (StringUtils.isBlank(federatedUsername)) {
-            throw new AuthenticationFailedException(ERROR_CODE_NO_FEDERATED_USER.getCode(),
-                    ERROR_CODE_NO_FEDERATED_USER.getMessage());
+            throw new AuthenticationFailedException(ERROR_NO_FEDERATED_USER.getCode(),
+                    ERROR_NO_FEDERATED_USER.getMessage());
         }
         String associatedLocalUsername = FederatedAuthenticatorUtil.getLocalUsernameAssociatedWithFederatedUser(
                 MultitenantUtils.getTenantAwareUsername(federatedUsername), context);
@@ -378,8 +377,8 @@ public class BackupCodeAuthenticator extends AbstractApplicationAuthenticator im
         }
 
         if (!isJitProvisioningEnabled(authenticatedUserInContext, tenantDomain)) {
-            throw new AuthenticationFailedException(ERROR_CODE_INVALID_FEDERATED_USER_AUTHENTICATION.getCode(),
-                    ERROR_CODE_INVALID_FEDERATED_USER_AUTHENTICATION.getMessage());
+            throw new AuthenticationFailedException(INVALID_FEDERATED_USER_AUTHENTICATION.getCode(),
+                    INVALID_FEDERATED_USER_AUTHENTICATION.getMessage());
         }
 
         // This is a federated initial authentication scenario.
@@ -432,21 +431,14 @@ public class BackupCodeAuthenticator extends AbstractApplicationAuthenticator im
 
         String tenantAwareUsername = null;
         try {
-            UserRealm userRealm = BackupCodeUtil.getUserRealm(username);
             tenantAwareUsername = MultitenantUtils.getTenantAwareUsername(username);
-            if (userRealm != null) {
-                Map<String, String> UserClaimValues = userRealm.getUserStoreManager()
-                        .getUserClaimValues(tenantAwareUsername, new String[]{BACKUP_CODES_CLAIM}, null);
-                String encryptedBackupCodes = UserClaimValues.get(BACKUP_CODES_CLAIM);
-                return StringUtils.isNotBlank(encryptedBackupCodes);
-            } else {
-                throw new BackupCodeException(ERROR_CODE_ERROR_FIND_USER_REALM.getCode(),
-                        String.format(ERROR_CODE_ERROR_FIND_USER_REALM.getMessage(),
-                                CarbonContext.getThreadLocalCarbonContext().getTenantDomain()));
-            }
+            Map<String, String> UserClaimValues = BackupCodeUtil.getUserStoreManagerOfUser(username)
+                    .getUserClaimValues(tenantAwareUsername, new String[]{BACKUP_CODES_CLAIM}, null);
+            String encryptedBackupCodes = UserClaimValues.get(BACKUP_CODES_CLAIM);
+            return StringUtils.isNotBlank(encryptedBackupCodes);
         } catch (UserStoreException e) {
-            throw new BackupCodeException(ERROR_CODE_ERROR_ACCESS_USER_REALM.getCode(),
-                    String.format(ERROR_CODE_ERROR_ACCESS_USER_REALM.getMessage(), tenantAwareUsername, e));
+            throw new BackupCodeException(ERROR_GETTING_THE_USER_STORE_MANAGER.getCode(),
+                    String.format(ERROR_GETTING_THE_USER_STORE_MANAGER.getMessage(), tenantAwareUsername, e));
         }
     }
 
@@ -512,92 +504,50 @@ public class BackupCodeAuthenticator extends AbstractApplicationAuthenticator im
     /**
      * Verify whether a given token is valid for the federated user.
      *
-     * @param code     Backup code which needs to be validated.
-     * @param context  Authentication context.
-     * @param userName Username.
+     * @param context Authentication context.
      * @return true if backup code is valid otherwise false.
-     * @throws BackupCodeException If an error occurred while validating token.
      */
-    private boolean isValidTokenFederatedUser(String code, AuthenticationContext context, String userName)
-            throws BackupCodeException {
+    private String backupCodesForFederatedUser(AuthenticationContext context) {
 
         String backupCodes = null;
         if (context.getProperty(BACKUP_CODES_CLAIM) != null) {
             backupCodes = context.getProperty(BACKUP_CODES_CLAIM).toString();
         }
-
-        if (backupCodes != null) {
-            return isValidBackupCode(code, context, userName, backupCodes);
-        }
-
-        return false;
-
+        return backupCodes;
     }
 
     /**
      * Verify whether a given token is valid for a stored local user.
      *
-     * @param code     Backup code which needs to be validated.
-     * @param context  Authentication context.
      * @param username Username of the user.
      * @return true if code is valid otherwise false.
      * @throws BackupCodeException UserRealm for user or tenant domain is null.
      */
-    private boolean isValidTokenLocalUser(String code, String username, AuthenticationContext context)
-            throws BackupCodeException {
+    private String backupCodesForLocalUser(String username) throws BackupCodeException {
 
         String tenantAwareUsername = null;
         try {
             tenantAwareUsername = MultitenantUtils.getTenantAwareUsername(username);
-            UserRealm userRealm = BackupCodeUtil.getUserRealm(username);
-            if (userRealm != null) {
-                Map<String, String> userClaimValues = userRealm.getUserStoreManager()
-                        .getUserClaimValues(tenantAwareUsername, new String[]{BACKUP_CODES_CLAIM}, null);
-                String encryptedBackupCodes = userClaimValues.get(BACKUP_CODES_CLAIM);
-                return isValidBackupCode(code, context, username, encryptedBackupCodes);
-            } else {
-                throw new BackupCodeException(ERROR_CODE_ERROR_FIND_USER_REALM.getCode(),
-                        String.format(ERROR_CODE_ERROR_FIND_USER_REALM.getMessage(),
-                                CarbonContext.getThreadLocalCarbonContext().getTenantDomain()));
-            }
+            Map<String, String> userClaimValues = BackupCodeUtil.getUserStoreManagerOfUser(username)
+                    .getUserClaimValues(tenantAwareUsername, new String[]{BACKUP_CODES_CLAIM}, null);
+            return userClaimValues.get(BACKUP_CODES_CLAIM);
         } catch (UserStoreException e) {
-            throw new BackupCodeException(ERROR_CODE_ERROR_ACCESS_USER_REALM.getCode(),
-                    String.format(ERROR_CODE_ERROR_ACCESS_USER_REALM.getMessage(), tenantAwareUsername, e));
+            throw new BackupCodeException(ERROR_ACCESS_USER_REALM.getCode(),
+                    String.format(ERROR_ACCESS_USER_REALM.getMessage(), tenantAwareUsername, e));
         }
     }
 
     private boolean isValidBackupCode(String token, AuthenticationContext context, String userName,
-                                      String encryptedBackupCodes) throws BackupCodeException {
+                                      String hashedBackupCodes) throws BackupCodeException {
 
-        if (StringUtils.isBlank(encryptedBackupCodes)) {
+        if (StringUtils.isBlank(hashedBackupCodes)) {
             if (log.isDebugEnabled()) {
                 log.debug("No backup codes found for user: " + userName);
             }
             return false;
         }
-        String decryptedCodes = null;
-        try {
-            if (StringUtils.isNotEmpty(encryptedBackupCodes)) {
-                decryptedCodes = BackupCodeUtil.decrypt(encryptedBackupCodes);
-            }
-        } catch (CryptoException e) {
-            throw new BackupCodeException(ERROR_CODE_ERROR_DECRYPT_BACKUP_CODE.getCode(),
-                    ERROR_CODE_ERROR_DECRYPT_BACKUP_CODE.getMessage(), e);
-        }
-        List<String> backupCodeList;
-        if (StringUtils.isEmpty(decryptedCodes)) {
-            backupCodeList = Collections.emptyList();
-        } else {
-            backupCodeList = new ArrayList<>(Arrays.asList(decryptedCodes.split(",")));
-        }
-
-        if (backupCodeList.isEmpty()) {
-            if (log.isDebugEnabled()) {
-                log.debug("No backup codes found for user: " + userName);
-            }
-            return false;
-        }
-        if (!backupCodeList.contains(token)) {
+        List<String> backupCodeList = new ArrayList<>(Arrays.asList(hashedBackupCodes.split(BACKUP_CODE_SEPARATOR)));
+        if (!backupCodeList.contains(BackupCodeUtil.generateHashBackupCode(token))) {
             if (log.isDebugEnabled()) {
                 log.debug(String.format("Given code: %s does not match with any saved backup codes codes for user: %s",
                         token, userName));
@@ -608,46 +558,36 @@ public class BackupCodeAuthenticator extends AbstractApplicationAuthenticator im
         if (log.isDebugEnabled()) {
             log.debug("Saved backup code found for the user: " + userName);
         }
-        removeUsedBackupCode(token, userName, backupCodeList);
         return true;
     }
 
     /**
      * Remove the used code from the saved backup code list for the user.
      *
-     * @param userToken   Backup code given by the user.
-     * @param username    Username.
-     * @param backupCodes Existing backup codes list.
+     * @param code              Backup code given by the user.
+     * @param username          Username.
+     * @param hashedBackupCodes Existing hashed backup codes in a comma separated string.
      * @throws BackupCodeException If an error occurred while removing the used backup code.
      */
-    private void removeUsedBackupCode(String userToken, String username, List<String> backupCodes)
+    private void removeUsedBackupCode(String code, String username, String hashedBackupCodes)
             throws BackupCodeException {
 
-        backupCodes.remove(userToken);
-        String unusedBackupCodes = String.join(",", backupCodes);
-        String encryptedBackupCodes = "";
-        try {
-            if (StringUtils.isNotEmpty(unusedBackupCodes)) {
-                encryptedBackupCodes = BackupCodeUtil.encrypt(unusedBackupCodes);
-            }
-        } catch (CryptoException e) {
-            throw new BackupCodeException(ERROR_CODE_ERROR_ENCRYPT_BACKUP_CODE.getCode(),
-                    ERROR_CODE_ERROR_ENCRYPT_BACKUP_CODE.getMessage(), e);
-        }
+        List<String> backupCodeList = new ArrayList<>(Arrays.asList(hashedBackupCodes.split(BACKUP_CODE_SEPARATOR)));
+
+        backupCodeList.remove(BackupCodeUtil.generateHashBackupCode(code));
+        String unusedBackupCodes = String.join(BACKUP_CODE_SEPARATOR, backupCodeList);
         String tenantAwareUsername = MultitenantUtils.getTenantAwareUsername(username);
         try {
             if (log.isDebugEnabled()) {
-                log.debug(String.format("Removing used token: %s from the backup code list of user: %s", userToken,
+                log.debug(String.format("Removing used token: %s from the backup code list of user: %s", code,
                         username));
             }
-            UserRealm userRealm = BackupCodeUtil.getUserRealm(username);
-            UserStoreManager userStoreManager = userRealm.getUserStoreManager();
             Map<String, String> claimsToUpdate = new HashMap<>();
-            claimsToUpdate.put(BACKUP_CODES_CLAIM, encryptedBackupCodes);
-            userStoreManager.setUserClaimValues(tenantAwareUsername, claimsToUpdate, null);
+            claimsToUpdate.put(BACKUP_CODES_CLAIM, unusedBackupCodes);
+            BackupCodeUtil.getUserStoreManagerOfUser(username).setUserClaimValues(tenantAwareUsername, claimsToUpdate, null);
         } catch (UserStoreException e) {
-            throw new BackupCodeException(ERROR_CODE_ERROR_UPDATING_BACKUP_CODES.getCode(),
-                    ERROR_CODE_ERROR_UPDATING_BACKUP_CODES.getMessage(), e);
+            throw new BackupCodeException(ERROR_UPDATING_BACKUP_CODES.getCode(),
+                    ERROR_UPDATING_BACKUP_CODES.getMessage(), e);
         }
     }
 
@@ -661,22 +601,14 @@ public class BackupCodeAuthenticator extends AbstractApplicationAuthenticator im
      */
     private void resetBackupCodeFailedAttempts(AuthenticatedUser user) throws BackupCodeException {
 
-        UserStoreManager userStoreManager;
-        try {
-            UserRealm userRealm = BackupCodeUtil.getUserRealm(user.toFullQualifiedUsername());
-            userStoreManager = userRealm.getUserStoreManager();
-            // Add required meta properties to the event.
-            Map<String, Object> metaProperties = new HashMap<>();
-            metaProperties.put(AUTHENTICATOR_NAME, BACKUP_CODE_AUTHENTICATOR_NAME);
-            metaProperties.put(PROPERTY_FAILED_LOGIN_ATTEMPTS_CLAIM, BACKUP_CODE_FAILED_ATTEMPTS_CLAIM);
-            metaProperties.put(USER_STORE_MANAGER, userStoreManager);
-            metaProperties.put(OPERATION_STATUS, true);
-
-            triggerEvent(POST_NON_BASIC_AUTHENTICATION, user, metaProperties);
-        } catch (UserStoreException e) {
-            throw new BackupCodeException(ERROR_CODE_ERROR_ACCESS_USER_REALM.getMessage(),
-                    String.format(ERROR_CODE_ERROR_ACCESS_USER_REALM.getMessage(), user.getUserName()), e);
-        }
+        UserStoreManager userStoreManager = BackupCodeUtil.getUserStoreManagerOfUser(user.toFullQualifiedUsername());
+        // Add required meta properties to the event.
+        Map<String, Object> metaProperties = new HashMap<>();
+        metaProperties.put(AUTHENTICATOR_NAME, BACKUP_CODE_AUTHENTICATOR_NAME);
+        metaProperties.put(PROPERTY_FAILED_LOGIN_ATTEMPTS_CLAIM, BACKUP_CODE_FAILED_ATTEMPTS_CLAIM);
+        metaProperties.put(USER_STORE_MANAGER, userStoreManager);
+        metaProperties.put(OPERATION_STATUS, true);
+        triggerEvent(POST_NON_BASIC_AUTHENTICATION, user, metaProperties);
     }
 
     /**
@@ -688,22 +620,15 @@ public class BackupCodeAuthenticator extends AbstractApplicationAuthenticator im
      */
     private void handleBackupCodeVerificationFail(AuthenticatedUser user) throws BackupCodeException {
 
-        UserStoreManager userStoreManager;
-        try {
-            UserRealm userRealm = BackupCodeUtil.getUserRealm(user.toFullQualifiedUsername());
-            userStoreManager = userRealm.getUserStoreManager();
-            // Add required meta properties to the event.
-            Map<String, Object> metaProperties = new HashMap<>();
-            metaProperties.put(AUTHENTICATOR_NAME, BACKUP_CODE_AUTHENTICATOR_NAME);
-            metaProperties.put(PROPERTY_FAILED_LOGIN_ATTEMPTS_CLAIM, BACKUP_CODE_FAILED_ATTEMPTS_CLAIM);
-            metaProperties.put(USER_STORE_MANAGER, userStoreManager);
-            metaProperties.put(OPERATION_STATUS, false);
+        UserStoreManager userStoreManager = BackupCodeUtil.getUserStoreManagerOfUser(user.toFullQualifiedUsername());
+        // Add required meta properties to the event.
+        Map<String, Object> metaProperties = new HashMap<>();
+        metaProperties.put(AUTHENTICATOR_NAME, BACKUP_CODE_AUTHENTICATOR_NAME);
+        metaProperties.put(PROPERTY_FAILED_LOGIN_ATTEMPTS_CLAIM, BACKUP_CODE_FAILED_ATTEMPTS_CLAIM);
+        metaProperties.put(USER_STORE_MANAGER, userStoreManager);
+        metaProperties.put(OPERATION_STATUS, false);
 
-            triggerEvent(POST_NON_BASIC_AUTHENTICATION, user, metaProperties);
-        } catch (UserStoreException e) {
-            throw new BackupCodeException(ERROR_CODE_ERROR_ACCESS_USER_REALM.getMessage(),
-                    String.format(ERROR_CODE_ERROR_ACCESS_USER_REALM.getMessage(), user.getUserName()), e);
-        }
+        triggerEvent(POST_NON_BASIC_AUTHENTICATION, user, metaProperties);
     }
 
     /**
@@ -732,8 +657,8 @@ public class BackupCodeAuthenticator extends AbstractApplicationAuthenticator im
         try {
             BackupCodeDataHolder.getIdentityEventService().handleEvent(identityMgtEvent);
         } catch (IdentityEventException e) {
-            throw new BackupCodeException(ERROR_CODE_ERROR_TRIGGERING_EVENT.getCode(),
-                    String.format(ERROR_CODE_ERROR_TRIGGERING_EVENT.getMessage(), eventName, user.getUserName()), e);
+            throw new BackupCodeException(ERROR_TRIGGERING_EVENT.getCode(),
+                    String.format(ERROR_TRIGGERING_EVENT.getMessage(), eventName, user.getUserName()), e);
         }
     }
 }

@@ -17,33 +17,19 @@
  */
 package org.wso2.carbon.identity.application.authenticator.backupcode.exception;
 
-import org.wso2.carbon.identity.base.IdentityException;
-
 /**
- * Backup code related exceptions.
+ * Backup code client related exceptions.
  */
-public class BackupCodeException extends IdentityException {
+public class BackupCodeClientException extends BackupCodeException {
 
     /**
-     * Backup code related exceptions.
+     * Backup code client related exceptions.
      *
      * @param errorCode Error code.
      * @param msg       Error message.
      */
-    public BackupCodeException(String errorCode, String msg) {
+    public BackupCodeClientException(String errorCode, String msg) {
 
         super(errorCode, msg);
-    }
-
-    /**
-     * Backup code related exceptions.
-     *
-     * @param errorCode Error code.
-     * @param msg       Error message.
-     * @param cause     Throwable the cause for the exception.
-     */
-    public BackupCodeException(String errorCode, String msg, Throwable cause) {
-
-        super(errorCode, msg, cause);
     }
 }
