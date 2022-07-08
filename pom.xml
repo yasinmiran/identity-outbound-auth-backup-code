@@ -21,7 +21,7 @@
     <groupId>org.wso2.carbon.extension.identity.authenticator.outbound.backupcode</groupId>
     <artifactId>identity-outbound-auth-backup-code</artifactId>
     <packaging>pom</packaging>
-    <version>0.0.4-SNAPSHOT</version>
+    <version>0.0.4</version>
     <name>WSO2 Carbon Extension - Platform Aggregator Pom</name>
     <url>http://wso2.org</url>
     <parent>
@@ -39,7 +39,7 @@
         <developerConnection>
             scm:git:https://github.com/wso2-extensions/identity-outbound-auth-backup-code.git
         </developerConnection>
-        <tag>HEAD</tag>
+        <tag>v0.0.4</tag>
     </scm>
     <dependencyManagement>
         <dependencies>
