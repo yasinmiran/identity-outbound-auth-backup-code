@@ -129,7 +129,7 @@ public class BackupCodeAPIHandler {
                 claims.put(BACKUP_CODES_CLAIM, backupCodes);
                 claims.put(BACKUP_CODES_ENABLED_CLAIM, isBackupCodesEnabled);
         try {
-            BackupCodeUtil.getUserStoreManagerOfUser(tenantAwareUsername).setUserClaimValues(tenantAwareUsername,
+            BackupCodeUtil.getUserStoreManagerOfUser(username).setUserClaimValues(tenantAwareUsername,
                     claims, null);
         } catch (UserStoreException e) {
             throw new BackupCodeClientException(ERROR_SETTING_USER_CLAIM_VALUES.getCode(),
