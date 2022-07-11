@@ -151,7 +151,8 @@ public class BackupCodeUtil {
             return userRealm.getUserStoreManager();
         } catch (UserStoreException e) {
             throw new BackupCodeException(ERROR_GETTING_THE_USER_STORE_MANAGER.getCode(),
-                    String.format(ERROR_GETTING_THE_USER_STORE_MANAGER.getMessage(), fullyQualifiedUsername, e));        }
+                    String.format(ERROR_GETTING_THE_USER_STORE_MANAGER.getMessage(), fullyQualifiedUsername, e));
+        }
     }
 
     /**
