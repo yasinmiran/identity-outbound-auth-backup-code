@@ -22,6 +22,10 @@
 
     <test name="Backup-Code-Authenticator-Unit-Tests">
         <classes>
+            <class name="org.wso2.carbon.identity.application.authenticator.backupcode.BackupCodeAPIHandlerTest"/>
+            <class name="org.wso2.carbon.identity.application.authenticator.backupcode.util.BackupCodeUtilTest"/>
+            <class name="org.wso2.carbon.identity.application.authenticator.backupcode.BackupCodeAuthenticatorTest"/>
+            <class name="org.wso2.carbon.identity.application.authenticator.backupcode.connector.BackupCodeAuthenticatorConfigImplTest"/>
         </classes>
     </test>
 </suite>
