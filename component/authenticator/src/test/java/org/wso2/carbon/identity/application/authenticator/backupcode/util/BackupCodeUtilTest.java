@@ -1,3 +1,21 @@
+/*
+ * Copyright (c) 2022, WSO2 LLC. (http://www.wso2.com).
+ *
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package org.wso2.carbon.identity.application.authenticator.backupcode.util;
 
 import org.mockito.Mock;
@@ -118,79 +136,56 @@ public class BackupCodeUtilTest extends PowerMockTestCase {
 
         AuthenticatedUser authenticatedUser = new AuthenticatedUser();
         authenticatedUser.setUserName("admin");
-
         StepConfig stepConfig = new StepConfig();
         stepConfig.setAuthenticatedUser(authenticatedUser);
         stepConfig.setSubjectAttributeStep(true);
-
         Map<Integer, StepConfig> stepConfigMap = new HashMap<>();
         stepConfigMap.put(1,stepConfig);
-
         SequenceConfig sequenceConfig = new SequenceConfig();
         sequenceConfig.setStepMap(stepConfigMap);
-
         AuthenticationContext authenticationContext = new AuthenticationContext();
         authenticationContext.setSequenceConfig(sequenceConfig);
 
-//        test case #2
         AuthenticatedUser authenticatedUser2 = new AuthenticatedUser();
-
         StepConfig stepConfig2 = new StepConfig();
         stepConfig2.setAuthenticatedUser(authenticatedUser2);
         stepConfig2.setSubjectAttributeStep(false);
-
         Map<Integer, StepConfig> stepConfigMap2 = new HashMap<>();
         stepConfigMap2.put(1,stepConfig2);
-
         SequenceConfig sequenceConfig2 = new SequenceConfig();
         sequenceConfig2.setStepMap(stepConfigMap2);
-
         AuthenticationContext authenticationContext2 = new AuthenticationContext();
         authenticationContext2.setSequenceConfig(sequenceConfig2);
 
-//        test case #3
         AuthenticatedUser authenticatedUser3 = new AuthenticatedUser();
-
         StepConfig stepConfig3 = new StepConfig();
         stepConfig3.setAuthenticatedUser(authenticatedUser3);
         stepConfig3.setSubjectAttributeStep(true);
-
         SequenceConfig sequenceConfig3 = new SequenceConfig();
         sequenceConfig3.setStepMap(null);
-
         AuthenticationContext authenticationContext3 = new AuthenticationContext();
         authenticationContext3.setSequenceConfig(sequenceConfig3);
 
-//        test case #4
         AuthenticatedUser authenticatedUser4 = new AuthenticatedUser();
         authenticatedUser4.setUserName("admin");
-
         StepConfig stepConfig4 = new StepConfig();
         stepConfig4.setAuthenticatedUser(authenticatedUser4);
         stepConfig4.setSubjectAttributeStep(false);
-
         Map<Integer, StepConfig> stepConfigMap4 = new HashMap<>();
         stepConfigMap4.put(1,stepConfig4);
-
         SequenceConfig sequenceConfig4 = new SequenceConfig();
         sequenceConfig4.setStepMap(stepConfigMap4);
-
         AuthenticationContext authenticationContext4 = new AuthenticationContext();
         authenticationContext4.setSequenceConfig(sequenceConfig4);
 
-//        test case #5
         AuthenticatedUser authenticatedUser5 = new AuthenticatedUser();
-
         StepConfig stepConfig5 = new StepConfig();
         stepConfig5.setAuthenticatedUser(null);
         stepConfig5.setSubjectAttributeStep(true);
-
         Map<Integer, StepConfig> stepConfigMap5 = new HashMap<>();
         stepConfigMap5.put(1,stepConfig5);
-
         SequenceConfig sequenceConfig5 = new SequenceConfig();
         sequenceConfig5.setStepMap(stepConfigMap5);
-
         AuthenticationContext authenticationContext5 = new AuthenticationContext();
         authenticationContext5.setSequenceConfig(sequenceConfig5);
 
